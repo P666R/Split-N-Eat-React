@@ -29,14 +29,20 @@ const initialFriends: Friends[] = [
 ];
 
 export default function App(): React.JSX.Element {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [showAddFriend, setShowAddFriend] = useState<boolean>(false);
+
+  function handleAddShowFriend() {
+    setShowAddFriend((s) => !s);
+  }
 
   return (
     <div className="app">
       <div className="sidebar">
         <FriendsList />
-        {isOpen && <FormAddFriend />}
-        <Button onIsOpen={setIsOpen}>Add friend</Button>
+        {showAddFriend && <FormAddFriend />}
+        <Button onClick={handleAddShowFriend}>
+          {showAddFriend ? 'Close' : 'Add friend'}
+        </Button>
       </div>
       <FormSplitBill />
     </div>
@@ -131,13 +137,13 @@ function FormSplitBill(): React.JSX.Element {
 
 type ButtonProps = {
   children: React.ReactNode;
-  onIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  onClick?: () => void;
 };
 
 // !Button component
-function Button({ children, onIsOpen }: ButtonProps): React.JSX.Element {
+function Button({ children, onClick }: ButtonProps): React.JSX.Element {
   return (
-    <button className="button" onClick={() => onIsOpen((prev) => !prev)}>
+    <button className="button" onClick={onClick}>
       {children}
     </button>
   );
