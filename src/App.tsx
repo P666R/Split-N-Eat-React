@@ -29,17 +29,23 @@ const initialFriends: Friends[] = [
 ];
 
 export default function App(): React.JSX.Element {
+  const [friends, setFriends] = useState<Friends[]>(initialFriends);
   const [showAddFriend, setShowAddFriend] = useState<boolean>(false);
 
   function handleAddShowFriend() {
     setShowAddFriend((s) => !s);
   }
 
+  function handleAddFriend(friend: Friends) {
+    setFriends((friends) => [...friends, friend]);
+    setShowAddFriend(false);
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
-        <FriendsList />
-        {showAddFriend && <FormAddFriend />}
+        <FriendsList friends={friends} />
+        {showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
         <Button onClick={handleAddShowFriend}>
           {showAddFriend ? 'Close' : 'Add friend'}
         </Button>
@@ -49,10 +55,12 @@ export default function App(): React.JSX.Element {
   );
 }
 
-// !FriendsList component
-function FriendsList(): React.JSX.Element {
-  const friends: Friends[] = initialFriends;
+type FriendsListProps = {
+  friends: Friends[];
+};
 
+// !Friends List component
+function FriendsList({ friends }: FriendsListProps): React.JSX.Element {
   return (
     <ul>
       {friends.map((friend) => {
@@ -94,22 +102,58 @@ function Friend({ name, image, balance }: FriendProps): React.JSX.Element {
   );
 }
 
-// !FormAddFriend component
-function FormAddFriend(): React.JSX.Element {
+type FromAddFriendProps = {
+  onAddFriend: (friend: Friends) => void;
+};
+// !Form Add Friend component
+function FormAddFriend({ onAddFriend }: FromAddFriendProps): React.JSX.Element {
+  const [name, setName] = useState<string>('');
+  const [image, setImage] = useState<string>(
+    'https://i.pravatar.cc/48?u=499476'
+  );
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!name || !image) return;
+
+    const id: number = crypto.getRandomValues(new Uint32Array(1))[0];
+
+    const newFriend = {
+      id,
+      name,
+      image: `${image}?random=${id}`,
+      balance: 0,
+    };
+
+    onAddFriend(newFriend);
+
+    setName('');
+    setImage('https://i.pravatar.cc/48?u=499476');
+  }
+
   return (
-    <form className="form-add-friend">
+    <form className="form-add-friend" onSubmit={handleSubmit}>
       <label>🤗Friend</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
 
       <label>📷Image URL</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={image}
+        onChange={(e) => setImage(e.target.value)}
+      />
 
       <Button>Add</Button>
     </form>
   );
 }
 
-// !FormSplitBill component
+// !Form Split Bill component
 function FormSplitBill(): React.JSX.Element {
   return (
     <form className="form-split-bill">
