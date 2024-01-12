@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+
 interface Friends {
   id: number;
   name: string;
@@ -26,30 +28,42 @@ const initialFriends: Friends[] = [
   },
 ];
 
-function App(): JSX.Element {
+export default function App(): React.JSX.Element {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
   return (
     <div className="app">
       <div className="sidebar">
         <FriendsList />
+        {isOpen && <FormAddFriend />}
+        <Button onIsOpen={setIsOpen}>Add friend</Button>
       </div>
+      <FormSplitBill />
     </div>
   );
 }
 
-function FriendsList(): JSX.Element {
+// !FriendsList component
+function FriendsList(): React.JSX.Element {
+  const friends: Friends[] = initialFriends;
+
   return (
-    <>
-      <ul>
-        {initialFriends.map((friend) => {
-          return <Friend key={friend.id} {...friend} />;
-        })}
-      </ul>
-      <button className="button">Add Friend</button>
-    </>
+    <ul>
+      {friends.map((friend) => {
+        return <Friend key={friend.id} {...friend} />;
+      })}
+    </ul>
   );
 }
 
-function Friend({ id, name, image, balance }: Friends): JSX.Element {
+type FriendProps = {
+  name: string;
+  image: string;
+  balance: number;
+};
+
+// !Friend component
+function Friend({ name, image, balance }: FriendProps): React.JSX.Element {
   return (
     <li>
       <img src={image} alt={name} />
@@ -69,9 +83,62 @@ function Friend({ id, name, image, balance }: Friends): JSX.Element {
 
       {balance === 0 && <p>You and {name} are even</p>}
 
-      <button className="button">Select</button>
+      <Button>Select</Button>
     </li>
   );
 }
 
-export default App;
+// !FormAddFriend component
+function FormAddFriend(): React.JSX.Element {
+  return (
+    <form className="form-add-friend">
+      <label>🤗Friend</label>
+      <input type="text" />
+
+      <label>📷Image URL</label>
+      <input type="text" />
+
+      <Button>Add</Button>
+    </form>
+  );
+}
+
+// !FormSplitBill component
+function FormSplitBill(): React.JSX.Element {
+  return (
+    <form className="form-split-bill">
+      <h2>Split a bill with x</h2>
+
+      <label>💰Bill value</label>
+      <input type="number" />
+
+      <label>🧍Your expense</label>
+      <input type="number" />
+
+      <label>🧑‍🤝‍🧑x's expense</label>
+      <input type="number" disabled />
+
+      <label>🤑Who is paying the bill?</label>
+      <select>
+        <option value="user">You</option>
+        <option value="friend">x</option>
+      </select>
+
+      <Button>Split bill</Button>
+    </form>
+  );
+}
+
+type ButtonProps = {
+  children: React.ReactNode;
+  onIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+// !Button component
+function Button({ children, onIsOpen }: ButtonProps): React.JSX.Element {
+  return (
+    <button className="button" onClick={() => onIsOpen((prev) => !prev)}>
+      {children}
+    </button>
+  );
+}
