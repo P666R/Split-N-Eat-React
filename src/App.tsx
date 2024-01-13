@@ -204,23 +204,47 @@ type FormSplitBillProps = {
 function FormSplitBill({
   selectedFriend,
 }: FormSplitBillProps): React.JSX.Element {
-  const { id, name, image, balance } = selectedFriend;
+  const [bill, setBill] = useState<number>(0);
+  const [paidByUser, setPaidByUser] = useState<number>(0);
+  const paidByFriend: number = bill - paidByUser;
+  const [whoIsPaying, setWhoIsPaying] = useState<string>('user');
+
+  const { name } = selectedFriend;
 
   return (
     <form className="form-split-bill">
       <h2>Split a bill with {name}</h2>
 
       <label>💰Bill value</label>
-      <input type="number" />
+      <input
+        type="number"
+        value={bill > 0 ? bill : ''}
+        onChange={(e) => setBill(Number(e.target.value))}
+      />
 
       <label>🧍Your expense</label>
-      <input type="number" />
+      <input
+        type="number"
+        value={paidByUser > 0 ? paidByUser : ''}
+        onChange={(e) =>
+          setPaidByUser(
+            Number(e.target.value) > bill ? paidByUser : Number(e.target.value)
+          )
+        }
+      />
 
       <label>🧑‍🤝‍🧑{name}'s expense</label>
-      <input type="number" disabled />
+      <input
+        type="number"
+        value={paidByFriend > 0 ? paidByFriend : ''}
+        disabled
+      />
 
       <label>🤑Who is paying the bill?</label>
-      <select>
+      <select
+        value={whoIsPaying}
+        onChange={(e) => setWhoIsPaying(e.target.value)}
+      >
         <option value="user">You</option>
         <option value="friend">{name}</option>
       </select>
