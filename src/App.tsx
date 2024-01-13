@@ -28,9 +28,11 @@ const initialFriends: Friends[] = [
   },
 ];
 
+// !App component
 export default function App(): React.JSX.Element {
   const [friends, setFriends] = useState<Friends[]>(initialFriends);
   const [showAddFriend, setShowAddFriend] = useState<boolean>(false);
+  const [selectedFriend, setSelectedFriend] = useState<Friends | null>(null);
 
   function handleAddShowFriend() {
     setShowAddFriend((s) => !s);
@@ -41,45 +43,83 @@ export default function App(): React.JSX.Element {
     setShowAddFriend(false);
   }
 
+  function handleSelection(friend: Friends) {
+    setSelectedFriend((curr) => (curr?.id === friend.id ? null : friend));
+    setShowAddFriend(false);
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
-        <FriendsList friends={friends} />
+        <FriendsList
+          friends={friends}
+          selectedFriend={selectedFriend}
+          onSelection={handleSelection}
+        />
+
         {showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
+
         <Button onClick={handleAddShowFriend}>
           {showAddFriend ? 'Close' : 'Add friend'}
         </Button>
       </div>
-      <FormSplitBill />
+
+      {selectedFriend && <FormSplitBill selectedFriend={selectedFriend} />}
     </div>
   );
 }
 
 type FriendsListProps = {
   friends: Friends[];
+  selectedFriend: Friends | null;
+  onSelection: (friend: Friends) => void;
 };
 
 // !Friends List component
-function FriendsList({ friends }: FriendsListProps): React.JSX.Element {
+function FriendsList({
+  friends,
+  selectedFriend,
+  onSelection,
+}: FriendsListProps): React.JSX.Element {
   return (
     <ul>
       {friends.map((friend) => {
-        return <Friend key={friend.id} {...friend} />;
+        return (
+          <Friend
+            key={friend.id}
+            {...friend}
+            selectedFriend={selectedFriend}
+            onSelection={onSelection}
+          />
+        );
       })}
     </ul>
   );
 }
 
 type FriendProps = {
+  id: number;
   name: string;
   image: string;
   balance: number;
+  selectedFriend: Friends | null;
+  onSelection: (friend: Friends) => void;
 };
 
 // !Friend component
-function Friend({ name, image, balance }: FriendProps): React.JSX.Element {
+function Friend({
+  id,
+  name,
+  image,
+  balance,
+  selectedFriend,
+  onSelection,
+}: FriendProps): React.JSX.Element {
+  const friend = { id, name, image, balance };
+  const isSelected = selectedFriend?.id === id;
+
   return (
-    <li>
+    <li className={isSelected ? 'selected' : ''}>
       <img src={image} alt={name} />
       <h3>{name}</h3>
 
@@ -97,7 +137,9 @@ function Friend({ name, image, balance }: FriendProps): React.JSX.Element {
 
       {balance === 0 && <p>You and {name} are even</p>}
 
-      <Button>Select</Button>
+      <Button onClick={() => onSelection(friend)}>
+        {isSelected ? 'Close' : 'Select'}
+      </Button>
     </li>
   );
 }
@@ -105,6 +147,7 @@ function Friend({ name, image, balance }: FriendProps): React.JSX.Element {
 type FromAddFriendProps = {
   onAddFriend: (friend: Friends) => void;
 };
+
 // !Form Add Friend component
 function FormAddFriend({ onAddFriend }: FromAddFriendProps): React.JSX.Element {
   const [name, setName] = useState<string>('');
@@ -153,11 +196,19 @@ function FormAddFriend({ onAddFriend }: FromAddFriendProps): React.JSX.Element {
   );
 }
 
+type FormSplitBillProps = {
+  selectedFriend: Friends;
+};
+
 // !Form Split Bill component
-function FormSplitBill(): React.JSX.Element {
+function FormSplitBill({
+  selectedFriend,
+}: FormSplitBillProps): React.JSX.Element {
+  const { id, name, image, balance } = selectedFriend;
+
   return (
     <form className="form-split-bill">
-      <h2>Split a bill with x</h2>
+      <h2>Split a bill with {name}</h2>
 
       <label>💰Bill value</label>
       <input type="number" />
@@ -165,13 +216,13 @@ function FormSplitBill(): React.JSX.Element {
       <label>🧍Your expense</label>
       <input type="number" />
 
-      <label>🧑‍🤝‍🧑x's expense</label>
+      <label>🧑‍🤝‍🧑{name}'s expense</label>
       <input type="number" disabled />
 
       <label>🤑Who is paying the bill?</label>
       <select>
         <option value="user">You</option>
-        <option value="friend">x</option>
+        <option value="friend">{name}</option>
       </select>
 
       <Button>Split bill</Button>
